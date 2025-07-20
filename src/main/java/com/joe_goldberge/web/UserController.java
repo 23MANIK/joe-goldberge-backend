@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "${app.cors.allowed-origin}")
+@CrossOrigin(origins = "https://joe-goldberg.vercel.app")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
