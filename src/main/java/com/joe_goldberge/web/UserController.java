@@ -6,16 +6,19 @@ import com.joe_goldberge.entities.Users;
 
 import com.joe_goldberge.repository.UserContentRepository;
 import com.joe_goldberge.repository.UsersRepository;
+import com.joe_goldberge.service.RecordFetcher;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "https://joe-goldberg.vercel.app")
+@CrossOrigin(origins = {"https://joe-goldberg.vercel.app", "http://localhost:3000"})
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 public class UserController {
 
     private final UserContentRepository userContentRepo;
@@ -28,13 +31,22 @@ public class UserController {
 
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public List<UserDTO> getAllUsers() {
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                RecordFetcher fetcher = new RecordFetcher();
+                fetcher.loadNewUsers();
+            } catch (Exception e) {
+                // Log the exception or handle it as needed
+                e.printStackTrace();
+            }
+        });
+
+
         List<UserContent> userContents = userContentRepo.findAll();
         List<Users> usersList = usersRepo.findAll();
-        System.out.println(userContents);
-        System.out.println(usersList);
-
         // Corrected: Map userId to Users
         Map<String, Users> userMap = usersList.stream()
                 .collect(Collectors.toMap(Users::getUserId, u -> u));
@@ -45,4 +57,5 @@ public class UserController {
 
         return users;
     }
+
 }
