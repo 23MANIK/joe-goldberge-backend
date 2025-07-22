@@ -1,7 +1,6 @@
 package com.joe_goldberge.entities;
 
 import lombok.Data;
-
 import java.util.List;
 
 @Data
@@ -33,4 +32,3 @@ public class UserDTO {
 
     }
 }
-
