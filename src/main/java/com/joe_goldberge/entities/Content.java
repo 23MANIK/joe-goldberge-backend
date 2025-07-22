@@ -13,25 +13,15 @@ public class Content {
         private String questionId;
         private String response;
         private String contentId;
-        private int position;
-        private Object transcriptionMetadata; // Replace with specific type if known
-        private String type;
+
     }
 
     @Data
     public static class Photo {
-        private String sourceId;
-        private BoundingBox boundingBox;
-        private String pHash;
-        private String contentId;
-        private int width;
-        private String caption;
-        private String cdnId;
-        private String location;
-        private String source;
+//        private BoundingBox boundingBox;
         private boolean selfieVerified;
         private String url;
-        private int height;
+//        private int height;
         private String videoUrl;
     }
 
