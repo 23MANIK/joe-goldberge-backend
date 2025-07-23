@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -83,8 +84,9 @@ public class RecordFetcher {
         return subjectIds;
     }
 
-    public void loadNewUsers() {
-        try {
+
+    @Scheduled(fixedRate = 5000)
+    public void loadNewUsers() {        try {
             List<String> userIds = fetchSubjectIds();
             // Here you would typically save these IDs to your database or process them further
             System.out.println("Fetched Subject IDs: " + userIds);

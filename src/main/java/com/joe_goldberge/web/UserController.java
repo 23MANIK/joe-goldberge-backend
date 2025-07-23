@@ -69,8 +69,6 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Users loaded successfully.");
-        // Optionally add count or other info
-        // response.put("loadedCount", 123);
 
         return ResponseEntity.ok(response);
 

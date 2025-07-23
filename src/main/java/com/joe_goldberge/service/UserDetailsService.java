@@ -30,6 +30,8 @@ public class UserDetailsService {
     private HttpURLConnection buildConnection(String urlStr) throws IOException {
         URL url = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(10000);
         conn.setRequestMethod("GET");
 
         conn.setRequestProperty("Accept", "*/*");

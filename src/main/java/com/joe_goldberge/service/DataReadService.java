@@ -4,10 +4,7 @@ import com.joe_goldberge.entities.UserContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -42,16 +39,20 @@ public class DataReadService {
         List<Criteria> criteriaList = new ArrayList<>();
 
         if (firstName != null && !firstName.isEmpty()) {
-            criteriaList.add(Criteria.where("profile.firstName").regex(Pattern.compile(Pattern.quote(firstName), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.firstName")
+                .regex(Pattern.compile("^" + Pattern.quote(firstName), Pattern.CASE_INSENSITIVE)));
         }
         if (education != null && !education.isEmpty()) {
-            criteriaList.add(Criteria.where("profile.education").regex(Pattern.compile(Pattern.quote(education), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.education")
+                .regex(Pattern.compile("^" + Pattern.quote(education), Pattern.CASE_INSENSITIVE)));
         }
         if (location != null && !location.isEmpty()) {
-            criteriaList.add(Criteria.where("profile.location").regex(Pattern.compile(Pattern.quote(location), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.location.name")
+                .regex(Pattern.compile("^" + Pattern.quote(location), Pattern.CASE_INSENSITIVE)));
         }
         if (hometown != null && !hometown.isEmpty()) {
-            criteriaList.add(Criteria.where("profile.hometown").regex(Pattern.compile(Pattern.quote(hometown), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.hometown")
+                .regex(Pattern.compile("^" + Pattern.quote(hometown), Pattern.CASE_INSENSITIVE)));
         }
 
         Criteria criteria = criteriaList.isEmpty() ? new Criteria() : new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
@@ -59,6 +60,7 @@ public class DataReadService {
 
         // Aggregation stages:
         MatchOperation matchStage = Aggregation.match(criteria);
+        SortOperation sortStage = Aggregation.sort(Sort.by(Sort.Direction.ASC, "profile.firstName"));
         SkipOperation skipStage = Aggregation.skip((long) pageable.getOffset());
         LimitOperation limitStage = Aggregation.limit(pageable.getPageSize());
 
@@ -82,6 +84,7 @@ public class DataReadService {
 
         Aggregation aggregation = Aggregation.newAggregation(
                 matchStage,
+                sortStage,
                 skipStage,
                 limitStage,
                 projectStage
