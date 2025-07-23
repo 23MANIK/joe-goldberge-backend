@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
+@Component
 public class RecordFetcher {
 
     private static final String BEARER_AUTH_TOKEN = System.getenv("BEARER_AUTH_TOKEN");

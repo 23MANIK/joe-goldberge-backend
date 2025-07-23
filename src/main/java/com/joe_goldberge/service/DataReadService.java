@@ -1,5 +1,6 @@
 package com.joe_goldberge.service;
 
+import com.joe_goldberge.entities.UserContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,16 +42,16 @@ public class DataReadService {
         List<Criteria> criteriaList = new ArrayList<>();
 
         if (firstName != null && !firstName.isEmpty()) {
-            criteriaList.add(Criteria.where("userProfile.profile.firstName").regex(Pattern.compile(Pattern.quote(firstName), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.firstName").regex(Pattern.compile(Pattern.quote(firstName), Pattern.CASE_INSENSITIVE)));
         }
         if (education != null && !education.isEmpty()) {
-            criteriaList.add(Criteria.where("userProfile.profile.education").regex(Pattern.compile(Pattern.quote(education), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.education").regex(Pattern.compile(Pattern.quote(education), Pattern.CASE_INSENSITIVE)));
         }
         if (location != null && !location.isEmpty()) {
-            criteriaList.add(Criteria.where("userProfile.profile.location").regex(Pattern.compile(Pattern.quote(location), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.location").regex(Pattern.compile(Pattern.quote(location), Pattern.CASE_INSENSITIVE)));
         }
         if (hometown != null && !hometown.isEmpty()) {
-            criteriaList.add(Criteria.where("userProfile.profile.hometown").regex(Pattern.compile(Pattern.quote(hometown), Pattern.CASE_INSENSITIVE)));
+            criteriaList.add(Criteria.where("profile.hometown").regex(Pattern.compile(Pattern.quote(hometown), Pattern.CASE_INSENSITIVE)));
         }
 
         Criteria criteria = criteriaList.isEmpty() ? new Criteria() : new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
@@ -58,42 +59,60 @@ public class DataReadService {
 
         // Aggregation stages:
         MatchOperation matchStage = Aggregation.match(criteria);
-        LookupOperation lookupStage = Aggregation.lookup("users", "userId", "userId", "userProfile");
-        UnwindOperation unwindStage = Aggregation.unwind("userProfile", true);
         SkipOperation skipStage = Aggregation.skip((long) pageable.getOffset());
         LimitOperation limitStage = Aggregation.limit(pageable.getPageSize());
 
         ProjectionOperation projectStage = Aggregation.project()
                 .and("userId").as("userId")
                 .and("content").as("content")
-                .and("userProfile.profile").as("userProfile");
+                .and("profile").as("userProfile");
 
         // Count total matching docs
         Aggregation countAgg = Aggregation.newAggregation(
                 matchStage,
-                lookupStage,
-                unwindStage,
                 Aggregation.count().as("total")
         );
         long total = 0L;
-        List<org.bson.Document> countResult = mongoTemplate.aggregate(countAgg, "user_content", org.bson.Document.class).getMappedResults();
+        List<org.bson.Document> countResult = mongoTemplate.aggregate(countAgg, "users", org.bson.Document.class).getMappedResults();
         if (!countResult.isEmpty()) {
-            Object t = countResult.get(0).get("total");
+            Object t = countResult.getFirst().get("total");
             total = t instanceof Number ? ((Number)t).longValue() : 0L;
         }
         logger.info("Total documents matching criteria: {}", total);
 
         Aggregation aggregation = Aggregation.newAggregation(
-                lookupStage,
-                unwindStage,
                 matchStage,
                 skipStage,
                 limitStage,
                 projectStage
         );
-        List<MongoUserDTO> content = mongoTemplate.aggregate(aggregation, "user_content", MongoUserDTO.class).getMappedResults();
+        List<MongoUserDTO> content = mongoTemplate.aggregate(aggregation, "users", MongoUserDTO.class).getMappedResults();
         logger.info("Returning {} documents", content.size());
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+
+    public List<UserContent> getAllContents( List<String> userIds) {
+        // get ddata from user_content collection
+        logger.info("getAllContents called with userIds: {}", userIds);
+        if (userIds == null || userIds.isEmpty()) {
+            logger.warn("No user IDs provided for content retrieval.");
+            return Collections.emptyList();
+        }
+        Criteria criteria = Criteria.where("userId").in(userIds);
+        MatchOperation matchStage = Aggregation.match(criteria);
+        ProjectionOperation projectStage = Aggregation.project()
+                .and("userId").as("userId")
+                .and("content").as("content");
+//                .and("createdAt").as("createdAt");
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchStage,
+                projectStage
+        );
+        List<UserContent> content = mongoTemplate.aggregate(aggregation, "user_content", UserContent.class).getMappedResults();
+        logger.info("Returning {} user content documents", content.size());
+        return content;
     }
 }
