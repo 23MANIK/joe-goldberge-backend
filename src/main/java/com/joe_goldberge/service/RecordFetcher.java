@@ -85,7 +85,7 @@ public class RecordFetcher {
     }
 
 
-    @Scheduled(fixedRate = 100000)
+    @Scheduled(fixedRate = 1000*60) // Every minute
     public void loadNewUsers() {        try {
             List<String> userIds = fetchSubjectIds();
             // Here you would typically save these IDs to your database or process them further
