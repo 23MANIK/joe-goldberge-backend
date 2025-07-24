@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-//@EnableScheduling
+@EnableScheduling
 @SpringBootApplication
 public class JoeGoldbergeApplication {
 
