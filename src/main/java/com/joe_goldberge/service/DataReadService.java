@@ -95,6 +95,51 @@ public class DataReadService {
         return new PageImpl<>(content, pageable, total);
     }
 
+    public Page<MongoUserDTO> getAllUsers(Pageable pageable) {
+        logger.info("getAllUsers called with pageable: {}", pageable);
+
+        // Match all documents (no filter)
+        MatchOperation matchStage = Aggregation.match(new Criteria());
+
+        // Sort by profile.firstName ascending
+        SortOperation sortStage = Aggregation.sort(Sort.by(Sort.Direction.ASC, "profile.firstName"));
+
+        // Pagination stages (skip and limit)
+        SkipOperation skipStage = Aggregation.skip(pageable.getOffset());
+        LimitOperation limitStage = Aggregation.limit(pageable.getPageSize());
+
+        // Project fields to match MongoUserDTO
+        ProjectionOperation projectStage = Aggregation.project()
+                .and("userId").as("userId")
+                .and("content").as("content")
+                .and("profile").as("userProfile");
+
+        // Count total documents
+        Aggregation countAgg = Aggregation.newAggregation(matchStage, Aggregation.count().as("total"));
+        long total = 0L;
+        List<org.bson.Document> countResult = mongoTemplate.aggregate(countAgg, "users", org.bson.Document.class).getMappedResults();
+        if (!countResult.isEmpty()) {
+            Object t = countResult.get(0).get("total");
+            total = t instanceof Number ? ((Number) t).longValue() : 0L;
+        }
+        logger.info("Total documents in collection: {}", total);
+
+        // Aggregation pipeline for result page
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchStage,
+                sortStage,
+                skipStage,
+                limitStage,
+                projectStage
+        );
+
+        List<MongoUserDTO> content = mongoTemplate.aggregate(aggregation, "users", MongoUserDTO.class).getMappedResults();
+        logger.info("Returning {} documents", content.size());
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+
 
     public List<UserContent> getAllContents( List<String> userIds) {
         // get ddata from user_content collection
@@ -117,5 +162,22 @@ public class DataReadService {
         List<UserContent> content = mongoTemplate.aggregate(aggregation, "user_content", UserContent.class).getMappedResults();
         logger.info("Returning {} user content documents", content.size());
         return content;
+    }
+
+    public long getCount() {
+        SortOperation sortStage = Aggregation.sort(Sort.by(Sort.Direction.ASC, "profile.firstName"));
+
+        Aggregation countAgg = Aggregation.newAggregation(
+                sortStage,
+                Aggregation.count().as("total")
+        );
+        long total = 0L;
+        List<org.bson.Document> countResult = mongoTemplate.aggregate(countAgg, "users", org.bson.Document.class).getMappedResults();
+        if (!countResult.isEmpty()) {
+            Object t = countResult.getFirst().get("total");
+            total = t instanceof Number ? ((Number)t).longValue() : 0L;
+        }
+        logger.info("Total documents matching criteria: {}", total);
+        return total;
     }
 }

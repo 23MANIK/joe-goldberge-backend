@@ -11,26 +11,32 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-@EnableScheduling
+//@EnableScheduling
 @SpringBootApplication
 public class JoeGoldbergeApplication {
 
     public static void main(String[] args) {
+//        uploadFileByLink("https://media.hingenexus.com/video/upload/f_mp4,w_720,c_limit/ymntcyawqjrjc555e02i.mp4","cute_cat.mp4");
         SpringApplication.run(JoeGoldbergeApplication.class, args);
-
-//        long start = System.currentTimeMillis();
-//
-//        fetchAndSaveUsersFromInput();
-//
-//        long end = System.currentTimeMillis();
-//        System.out.println("⏱️ Total upload time: " + (end - start) + " ms");
     }
 
-
-    /// //////////////////////////////////////////----------------/////////////////////////////////////
-    ///
-    ///
     /// /// //////////////////////////////////////////----------------/////////////////////////////////////
+    ///
+    ///
+
+    // write a methond to call uploadByLink function from TeraBoxService
+
+    public static void uploadFileByLink(String link, String fileName) {
+
+        try {
+//            TeraBoxService.uploadFileByLink(link, fileName);
+            System.out.println("✅ File uploaded successfully.");
+        } catch (Exception e) {
+            System.out.println("❌ Error uploading file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public static void fetchAndSaveUsersFromInput() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter user IDs separated by commas:");

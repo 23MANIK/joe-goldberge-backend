@@ -7,6 +7,8 @@ import com.joe_goldberge.repository.UserContentRepository;
 import com.joe_goldberge.repository.UsersRepository;
 import com.joe_goldberge.service.DataReadService;
 import com.joe_goldberge.service.RecordFetcher;
+import com.joe_goldberge.service.TeraBoxBatchUploadService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -24,19 +26,14 @@ import java.util.Map;
 @CrossOrigin(origins = {"https://joe-goldberg.vercel.app", "http://localhost:3000"})
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class UserController {
 
     @Autowired
     DataReadService service;
 
-    private final UserContentRepository userContentRepo;
-
-    private final UsersRepository usersRepo;
-
-    public UserController(UserContentRepository userContentRepo, UsersRepository usersRepo) {
-        this.userContentRepo = userContentRepo;
-        this.usersRepo = usersRepo;
-    }
+    @Autowired
+    private TeraBoxBatchUploadService teraBoxBatchUploadService;
 
 
     @GetMapping("/users")
@@ -72,5 +69,32 @@ public class UserController {
 
         return ResponseEntity.ok(response);
 
+    }
+
+
+    @GetMapping("/mongo-health")
+    public String testMongo() {
+        long count = service.getCount();
+        return "User count: " + count;
+    }
+
+
+    @PostMapping("/batch/start")
+    public ResponseEntity<Map<String, String>> startBatchUpload() {
+        try {
+            log.info("Received request to start batch upload");
+            String jobId = teraBoxBatchUploadService.startBatchUpload();
+            Map<String, String> response = new HashMap<>();
+            response.put("status", "STARTED");
+            response.put("message", "Batch upload process has been started");
+            response.put("jobId", jobId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.info("Failed to start batch upload", e);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "ERROR");
+            errorResponse.put("message", "Failed to start batch upload: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
     }
 }
