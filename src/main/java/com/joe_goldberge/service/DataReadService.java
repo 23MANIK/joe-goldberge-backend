@@ -60,7 +60,13 @@ public class DataReadService {
 
         // Aggregation stages:
         MatchOperation matchStage = Aggregation.match(criteria);
-//        SortOperation sortStage = Aggregation.sort(Sort.by(Sort.Direction.ASC, "profile.firstName"));
+        // Sort by updatedAt desc, then by _id desc if updatedAt is null
+        SortOperation sortStage = Aggregation.sort(
+            Sort.by(
+                Sort.Order.desc("updatedAt"),
+                Sort.Order.desc("_id")
+            )
+        );
         SkipOperation skipStage = Aggregation.skip((long) pageable.getOffset());
         LimitOperation limitStage = Aggregation.limit(pageable.getPageSize());
 
