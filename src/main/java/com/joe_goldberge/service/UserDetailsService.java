@@ -85,6 +85,10 @@ public class UserDetailsService {
             Document doc = Document.parse(userObj.toString());
             String userId = userObj.optString("userId", null);
 
+            // Add createdAt and updatedAt fields
+            doc.put("createdAt", new Date());
+            doc.put("updatedAt", new Date());
+
             if (userId != null) {
                 collection.replaceOne(
                         new Document("userId", userId), doc,

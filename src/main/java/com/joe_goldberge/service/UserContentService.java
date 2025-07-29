@@ -75,6 +75,9 @@ public class UserContentService {
                 JSONObject obj = array.getJSONObject(i);
                 String userId = obj.optString("userId", null);
                 Document doc = Document.parse(obj.toString());
+                // Add createdAt and updatedAt fields
+                doc.put("createdAt", new Date());
+                doc.put("updatedAt", new Date());
                 if (userId != null) {
                     contentCollection.replaceOne(new Document("userId", userId), doc, new ReplaceOptions().upsert(true));
                 } else {
