@@ -92,7 +92,6 @@ public class DataReadService {
                 matchStage,
                 Aggregation.sort(
                     Sort.by(
-                        Sort.Order.desc("updatedAt"),
                         Sort.Order.desc("_id")
                     )
                 ),
